@@ -1,0 +1,46 @@
+################################################################
+# Blueprint node types.
+#
+# specific new types for Grafana.
+# these types are mapped to scripts that are resposible
+# for the lifecycle operation.
+################################################################
+
+node_types:
+
+  redis.nodes.Redis:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      port:
+        description: redis port
+        type: integer
+        default: 6379
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: script.script_runner.tasks.run
+          inputs:
+            script_path:
+              default: https://raw.githubusercontent.com/kemiz/redis-cfy3/3.2m8/scripts/install-redis.sh
+        start:
+          implementation: script.script_runner.tasks.run
+          inputs:
+            script_path:
+              default: https://raw.githubusercontent.com/kemiz/redis-cfy3/3.2m8/scripts/start-redis.sh
+        stop:
+          implementation: script.script_runner.tasks.run
+          inputs:
+            script_path:
+              default: https://raw.githubusercontent.com/kemiz/redis-cfy3/3.2m8/scripts/stop-redis.sh
+
+relationships:
+
+  connected_to_redis:
+    derived_from: cloudify.relationships.connected_to
+    # target_interfaces:
+      # cloudify.interfaces.relationship_lifecycle:
+      #   postconfigure:
+      #     implementation: script.script_runner.tasks.run
+      #     inputs:
+      #       script_path:
+      #         default: 
