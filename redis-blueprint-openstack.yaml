@@ -10,7 +10,7 @@ imports:
   - http://www.getcloudify.org/spec/openstack-plugin/1.2m8/plugin.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.2m8/plugin.yaml
   - https://raw.githubusercontent.com/kemiz/monitored-server-cfy3/master/types/monitored-server-types.yaml
-  - types/elasticsearch.yaml
+  - types/redis.yaml
 
 inputs:
 
@@ -26,40 +26,41 @@ inputs:
     description: >
       User for connecting to agent VM's
 
-  elasticsearch_port:
+  redis_port:
+    default: 6379
     description: >
-      elasticsearch port
+      redis port
 
 node_templates:
 
-  elasticsearch_host:
+  redis_host:
     type: monitoredhosts.openstack.nodes.MonitoredServer
     relationships:
-      - target: elasticsearch_security_group
+      - target: redis_security_group
         type: cloudify.openstack.server_connected_to_security_group
 
-  elasticsearch:
-    type: elasticsearch.nodes.Elasticsearch
+  redis:
+    type: redis.nodes.Redis
     properties:
-      port: { get_input: elasticsearch_port }
+      port: { get_input: redis_port }
     relationships:
       - type: cloudify.relationships.contained_in
-        target: elasticsearch_host
+        target: redis_host
 
   ###########################################################
-  # A security group to enable access to the elasticsearch host
-  # using the port of the elasticsearch node.
+  # A security group to enable access to the redis host
+  # using the port of the redis node.
   #
   # We need this so that applications can
-  # comminicate with elasticsearch, since they are running on
+  # comminicate with redis, since they are running on
   # different hosts.
   ###########################################################
 
-  elasticsearch_security_group:
+  redis_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
       security_group:
-        name: elasticsearch_security_group
+        name: redis_security_group
       rules:
         - remote_ip_prefix: 0.0.0.0/0
-          port: { get_property: [ elasticsearch, port ] }
+          port: { get_property: [ redis, port ] }
